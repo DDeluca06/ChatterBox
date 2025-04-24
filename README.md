@@ -10,6 +10,7 @@
 **Trello:** [Link](https://trello.com/b/7jA4tSjj/chatterbox)
 
 **Live Demo:** N/A
+
 ---
 
 ## Business Problem
