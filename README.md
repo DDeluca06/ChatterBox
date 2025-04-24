@@ -2,11 +2,14 @@
 
 ## Project Overview
 **Industry:** Social Media
-**Developer:** Demitri DeLuca-Lyons
-**Completion Date:** 5/14/25  
-**Trello:** [Link](https://trello.com/b/7jA4tSjj/chatterbox)
-**Live Demo:** N/A
 
+**Developer:** Demitri DeLuca-Lyons
+
+**Completion Date:** 5/14/25 
+
+**Trello:** [Link](https://trello.com/b/7jA4tSjj/chatterbox)
+
+**Live Demo:** N/A
 ---
 
 ## Business Problem
