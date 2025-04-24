@@ -92,7 +92,7 @@ AI is central to our platform's functionality, powering several key features thr
 ## Technical Implementation
 
 ### Wireframes & System Architecture
-![System Architecture](./public/Chatterbox.png)
+![System Architecture](./images/Chatterbox.png)
 
 The system architecture follows a modern, scalable design pattern with clear separation of concerns.
 
