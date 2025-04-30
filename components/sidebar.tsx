@@ -116,7 +116,7 @@ function NavGroup({ title, children, collapsible = false }: NavGroupProps) {
 export function Sidebar() {
   const pathname = usePathname()
   const [isMobileOpen, setIsMobileOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
 
   // Platform stats
   const platformStats = {
@@ -136,8 +136,7 @@ export function Sidebar() {
 
   // Handle window resize for mobile sidebar
   useEffect(() => {
-    setMounted(true)
-
+    setIsMounted(true)
     const handleResize = () => {
       if (window.innerWidth > 768) {
         setIsMobileOpen(false)
@@ -153,14 +152,16 @@ export function Sidebar() {
     setIsMobileOpen(!isMobileOpen)
   }
 
-  if (!mounted) {
-    return null
-  }
-
   return (
     <>
       {/* Mobile Toggle Button */}
-      <Button variant="ghost" size="icon" className="fixed left-4 top-4 z-50 md:hidden" onClick={toggleMobileSidebar}>
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="fixed left-4 top-4 z-50 md:hidden" 
+        onClick={toggleMobileSidebar}
+        aria-label={isMobileOpen ? "Close sidebar" : "Open sidebar"}
+      >
         {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
 
@@ -168,7 +169,8 @@ export function Sidebar() {
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-800 transition-transform duration-300 ease-in-out md:translate-x-0",
-          isMobileOpen ? "translate-x-0" : "-translate-x-full",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+          !isMounted && "invisible"
         )}
       >
         {/* Logo and Brand */}
