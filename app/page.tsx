@@ -91,10 +91,6 @@ export default function Dashboard() {
       <div className="mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Dashboard Overview</h1>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Status:</span>
-            <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">Active</span>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
