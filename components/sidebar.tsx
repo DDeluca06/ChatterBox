@@ -136,13 +136,14 @@ export function Sidebar() {
 
   // Handle window resize for mobile sidebar
   useEffect(() => {
-    setIsMounted(true)
     const handleResize = () => {
       if (window.innerWidth > 768) {
         setIsMobileOpen(false)
       }
     }
 
+    // Set mounted state immediately
+    setIsMounted(true)
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
   }, [])
@@ -150,6 +151,11 @@ export function Sidebar() {
   // Mobile sidebar toggle
   const toggleMobileSidebar = () => {
     setIsMobileOpen(!isMobileOpen)
+  }
+
+  // Don't render anything until mounted
+  if (!isMounted) {
+    return null
   }
 
   return (
@@ -169,8 +175,7 @@ export function Sidebar() {
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-800 transition-transform duration-300 ease-in-out md:translate-x-0",
-          isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-          !isMounted && "invisible"
+          isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
         {/* Logo and Brand */}
