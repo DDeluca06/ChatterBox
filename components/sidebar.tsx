@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import {
   BarChart3,
@@ -42,7 +43,7 @@ interface NavItemProps {
   isActive?: boolean
   badge?: string | number
   badgeColor?: string
-  onClick?: () => void
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
   children?: React.ReactNode
 }
 
@@ -110,6 +111,41 @@ function NavGroup({ title, children, collapsible = false }: NavGroupProps) {
       </div>
       {(!collapsible || isOpen) && <ul className="space-y-1 px-1">{children}</ul>}
     </div>
+  )
+}
+
+function LogoutButton() {
+  const handleLogout = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    try {
+      // Call our custom signout endpoint first
+      await fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "include",
+      })
+
+      // Then sign out from NextAuth
+      await signOut({ 
+        redirect: false
+      })
+
+      // Force a hard navigation to the home page
+      window.location.replace("/")
+    } catch (error) {
+      console.error("Error during logout:", error)
+    }
+  }
+
+  return (
+    <li>
+      <button
+        onClick={handleLogout}
+        className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
+      >
+        <LogOut className="h-4 w-4" />
+        <span>Logout</span>
+      </button>
+    </li>
   )
 }
 
@@ -394,7 +430,7 @@ export function Sidebar() {
           <ul className="space-y-1">
             <NavItem icon={Settings} label="Settings" href="/settings" isActive={pathname === "/settings"} />
             <NavItem icon={HelpCircle} label="Help & Support" href="/help" isActive={pathname === "/help"} />
-            <NavItem icon={LogOut} label="Logout" href="/logout" />
+            <LogoutButton />
           </ul>
         </div>
       </aside>

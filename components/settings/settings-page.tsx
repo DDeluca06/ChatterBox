@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,42 +9,152 @@ import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Instagram, Twitter, Facebook, Linkedin, Moon, Sun, Monitor } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { useSession } from "next-auth/react"
+
+interface SocialConnection {
+  platform: string
+  icon: any
+  connected: boolean
+  username: string | null
+  lastSync: string | null
+}
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme()
+  const { toast } = useToast()
+  const { data: session } = useSession()
   const [notifications, setNotifications] = useState(true)
   const [emailUpdates, setEmailUpdates] = useState(false)
+  const [isLoading, setIsLoading] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
 
-  const socialConnections = [
+  const [socialConnections, setSocialConnections] = useState<SocialConnection[]>([
     {
-      platform: "Instagram",
+      platform: "INSTAGRAM",
       icon: Instagram,
-      connected: true,
-      username: "@acmeinc",
-      lastSync: "2 hours ago",
+      connected: false,
+      username: null,
+      lastSync: null,
     },
     {
-      platform: "Twitter",
+      platform: "TWITTER",
       icon: Twitter,
-      connected: true,
-      username: "@acmeinc",
-      lastSync: "1 hour ago",
+      connected: false,
+      username: null,
+      lastSync: null,
     },
     {
-      platform: "Facebook",
+      platform: "FACEBOOK",
       icon: Facebook,
       connected: false,
       username: null,
       lastSync: null,
     },
     {
-      platform: "LinkedIn",
+      platform: "LINKEDIN",
       icon: Linkedin,
       connected: false,
       username: null,
       lastSync: null,
     },
-  ]
+  ])
+
+  const handleConnect = async (platform: string) => {
+    try {
+      setIsLoading(platform)
+      
+      // In a real implementation, this would redirect to the OAuth flow
+      // For now, we'll simulate a successful connection
+      const response = await fetch("/api/social/connect", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          platform,
+          code: "dummy_code", // In real implementation, this would come from OAuth callback
+        }),
+      })
+
+      if (!response.ok) throw new Error("Failed to connect")
+
+      const data = await response.json()
+      
+      setSocialConnections(prev =>
+        prev.map(conn =>
+          conn.platform === platform
+            ? {
+                ...conn,
+                connected: true,
+                username: data.username,
+                lastSync: new Date().toISOString(),
+              }
+            : conn
+        )
+      )
+
+      toast({
+        title: "Connected successfully",
+        description: `Successfully connected to ${platform.toLowerCase()}`,
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to connect to ${platform.toLowerCase()}`,
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(null)
+    }
+  }
+
+  const handleDisconnect = async (platform: string) => {
+    try {
+      setIsLoading(platform)
+      
+      const response = await fetch("/api/social/disconnect", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ platform }),
+      })
+
+      if (!response.ok) throw new Error("Failed to disconnect")
+
+      setSocialConnections(prev =>
+        prev.map(conn =>
+          conn.platform === platform
+            ? {
+                ...conn,
+                connected: false,
+                username: null,
+                lastSync: null,
+              }
+            : conn
+        )
+      )
+
+      toast({
+        title: "Disconnected successfully",
+        description: `Successfully disconnected from ${platform.toLowerCase()}`,
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to disconnect from ${platform.toLowerCase()}`,
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(null)
+    }
+  }
+
+  // Handle mounting state
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <div className="container max-w-5xl py-6 space-y-8">
@@ -74,21 +184,21 @@ export function SettingsPage() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button
-                    variant={theme === "light" ? "default" : "outline"}
+                    variant={mounted && theme === "light" ? "default" : "outline"}
                     size="icon"
                     onClick={() => setTheme("light")}
                   >
                     <Sun className="h-4 w-4" />
                   </Button>
                   <Button
-                    variant={theme === "dark" ? "default" : "outline"}
+                    variant={mounted && theme === "dark" ? "default" : "outline"}
                     size="icon"
                     onClick={() => setTheme("dark")}
                   >
                     <Moon className="h-4 w-4" />
                   </Button>
                   <Button
-                    variant={theme === "system" ? "default" : "outline"}
+                    variant={mounted && theme === "system" ? "default" : "outline"}
                     size="icon"
                     onClick={() => setTheme("system")}
                   >
@@ -123,8 +233,20 @@ export function SettingsPage() {
                         )}
                       </div>
                     </div>
-                    <Button variant={connection.connected ? "outline" : "default"}>
-                      {connection.connected ? "Disconnect" : "Connect"}
+                    <Button
+                      variant={connection.connected ? "outline" : "default"}
+                      onClick={() =>
+                        connection.connected
+                          ? handleDisconnect(connection.platform)
+                          : handleConnect(connection.platform)
+                      }
+                      disabled={isLoading === connection.platform}
+                    >
+                      {isLoading === connection.platform
+                        ? "Loading..."
+                        : connection.connected
+                        ? "Disconnect"
+                        : "Connect"}
                     </Button>
                   </div>
                   <Separator />
