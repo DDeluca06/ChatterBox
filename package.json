@@ -4,14 +4,18 @@
   "private": true,
   "packageManager": "pnpm@8.15.4",
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=22.15.0",
     "pnpm": ">=8.0.0"
   },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:seed": "ts-node --project prisma/tsconfig.json prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "ts-node --project prisma/tsconfig.json prisma/seed.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.9.0",
@@ -69,14 +73,17 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@faker-js/faker": "^9.7.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.17",
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
+    "mini-css-extract-plugin": "^2.9.2",
     "postcss": "^8.4.35",
     "tailwindcss": "~3.4.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

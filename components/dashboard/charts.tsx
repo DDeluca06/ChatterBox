@@ -17,31 +17,35 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
-// Sample data for charts
-const platformGrowthData = [
-  { name: "Jan", instagram: 28500, twitter: 16200, facebook: 41000, linkedin: 10500 },
-  { name: "Feb", instagram: 29200, twitter: 16800, facebook: 42100, linkedin: 10800 },
-  { name: "Mar", instagram: 30100, twitter: 17200, facebook: 43000, linkedin: 11100 },
-  { name: "Apr", instagram: 31000, twitter: 17500, facebook: 43800, linkedin: 11400 },
-  { name: "May", instagram: 31800, twitter: 17900, facebook: 44500, linkedin: 11700 },
-  { name: "Jun", instagram: 32451, twitter: 18742, facebook: 45328, linkedin: 12184 },
-];
+interface GrowthData {
+  name: string;
+  instagram: number;
+  twitter: number;
+  facebook: number;
+  linkedin: number;
+}
 
-const engagementData = [
-  { name: "Instagram", value: 3.8, color: "#E1306C" },
-  { name: "Twitter", value: 2.1, color: "#1DA1F2" },
-  { name: "Facebook", value: 1.9, color: "#4267B2" },
-  { name: "LinkedIn", value: 4.2, color: "#0077B5" },
-];
+interface PlatformStats {
+  platform: string;
+  followers: number;
+  engagement: string;
+  growth: number;
+}
 
-const contentTypeData = [
-  { name: "Images", value: 45, color: "#FF6384" },
-  { name: "Videos", value: 30, color: "#36A2EB" },
-  { name: "Text", value: 15, color: "#FFCE56" },
-  { name: "Links", value: 10, color: "#4BC0C0" },
-];
+interface ChartProps {
+  data: GrowthData[] | PlatformStats[];
+}
 
-export function GrowthChart() {
+const COLORS = {
+  INSTAGRAM: "#E1306C",
+  TWITTER: "#1DA1F2",
+  FACEBOOK: "#4267B2",
+  LINKEDIN: "#0077B5",
+};
+
+export function GrowthChart({ data }: ChartProps) {
+  const growthData = data as GrowthData[];
+
   return (
     <Card>
       <CardHeader>
@@ -52,7 +56,7 @@ export function GrowthChart() {
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
-              data={platformGrowthData}
+              data={growthData}
               margin={{
                 top: 5,
                 right: 30,
@@ -69,12 +73,12 @@ export function GrowthChart() {
                 type="monotone"
                 dataKey="instagram"
                 name="Instagram"
-                stroke="#E1306C"
+                stroke={COLORS.INSTAGRAM}
                 activeDot={{ r: 8 }}
               />
-              <Line type="monotone" dataKey="twitter" name="Twitter" stroke="#1DA1F2" />
-              <Line type="monotone" dataKey="facebook" name="Facebook" stroke="#4267B2" />
-              <Line type="monotone" dataKey="linkedin" name="LinkedIn" stroke="#0077B5" />
+              <Line type="monotone" dataKey="twitter" name="Twitter" stroke={COLORS.TWITTER} />
+              <Line type="monotone" dataKey="facebook" name="Facebook" stroke={COLORS.FACEBOOK} />
+              <Line type="monotone" dataKey="linkedin" name="LinkedIn" stroke={COLORS.LINKEDIN} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -83,7 +87,9 @@ export function GrowthChart() {
   );
 }
 
-export function GrowthMetricsChart() {
+export function GrowthMetricsChart({ data }: ChartProps) {
+  const growthData = data as GrowthData[];
+
   return (
     <Card>
       <CardHeader>
@@ -94,7 +100,7 @@ export function GrowthMetricsChart() {
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={platformGrowthData}
+              data={growthData}
               margin={{
                 top: 5,
                 right: 30,
@@ -107,10 +113,10 @@ export function GrowthMetricsChart() {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="instagram" name="Instagram" fill="#E1306C" />
-              <Bar dataKey="twitter" name="Twitter" fill="#1DA1F2" />
-              <Bar dataKey="facebook" name="Facebook" fill="#4267B2" />
-              <Bar dataKey="linkedin" name="LinkedIn" fill="#0077B5" />
+              <Bar dataKey="instagram" name="Instagram" fill={COLORS.INSTAGRAM} />
+              <Bar dataKey="twitter" name="Twitter" fill={COLORS.TWITTER} />
+              <Bar dataKey="facebook" name="Facebook" fill={COLORS.FACEBOOK} />
+              <Bar dataKey="linkedin" name="LinkedIn" fill={COLORS.LINKEDIN} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -119,7 +125,14 @@ export function GrowthMetricsChart() {
   );
 }
 
-export function EngagementChart() {
+export function EngagementChart({ data }: ChartProps) {
+  const platformStats = data as PlatformStats[];
+  const engagementData = platformStats.map(stat => ({
+    name: stat.platform,
+    value: parseFloat(stat.engagement),
+    color: COLORS[stat.platform as keyof typeof COLORS],
+  }));
+
   return (
     <Card>
       <CardHeader>
@@ -154,7 +167,15 @@ export function EngagementChart() {
   );
 }
 
-export function ContentDistributionChart() {
+export function ContentDistributionChart({ data }: ChartProps) {
+  const platformStats = data as PlatformStats[];
+  const contentData = [
+    { name: "Images", value: 45, color: "#FF6384" },
+    { name: "Videos", value: 30, color: "#36A2EB" },
+    { name: "Text", value: 15, color: "#FFCE56" },
+    { name: "Links", value: 10, color: "#4BC0C0" },
+  ];
+
   return (
     <Card>
       <CardHeader>
@@ -166,7 +187,7 @@ export function ContentDistributionChart() {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={contentTypeData}
+                data={contentData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -175,7 +196,7 @@ export function ContentDistributionChart() {
                 dataKey="value"
                 label={({ name, value }) => `${name} (${value}%)`}
               >
-                {contentTypeData.map((entry, index) => (
+                {contentData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
