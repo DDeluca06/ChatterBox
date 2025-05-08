@@ -1,10 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AuthErrorPage() {
   const searchParams = useSearchParams();
@@ -21,16 +18,11 @@ export default function AuthErrorPage() {
 
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
-      <Card className="w-[350px]">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Authentication Error</CardTitle>
-          <CardDescription>{errorMessage}</CardDescription>
+      <Card className="w-[400px]">
+        <CardHeader>
+          <CardTitle>Authentication Error</CardTitle>
+          <p className="text-sm text-muted-foreground">{errorMessage}</p>
         </CardHeader>
-        <CardFooter>
-          <Button asChild className="w-full">
-            <Link href="/auth/signin">Back to Sign In</Link>
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   );

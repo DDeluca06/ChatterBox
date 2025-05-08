@@ -6,41 +6,164 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model User {
-  id                Int                @id @default(autoincrement())
-  email             String             @unique
+  id                String    @id @default(cuid())
   name              String?
-  password          String
+  email             String?   @unique
+  emailVerified     DateTime?
+  image             String?
+  password          String?
+  accounts          Account[]
+  sessions          Session[]
   socialConnections SocialConnection[]
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  calendarEvents    CalendarEvent[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model SocialConnection {
-  id            Int      @id @default(autoincrement())
-  userId        Int
-  platform      Platform
+  id            Int           @id @default(autoincrement())
+  userId        String
+  platform      PlatformType
   username      String?
-  accessToken   String?  @db.Text
-  refreshToken  String?  @db.Text
+  accessToken   String?
+  refreshToken  String?
   tokenExpiresAt DateTime?
-  metadata      Json?
-  isConnected   Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  user          User     @relation(fields: [userId], references: [id])
+  metadata      String?
+  isConnected   Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  user          User          @relation(fields: [userId], references: [id])
 
   @@unique([userId, platform])
 }
 
-enum Platform {
+model Platform {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  stats     Stats[]
+  engagement Engagement[]
+  content    Content[]
+  audience   Audience[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Stats {
+  id              Int      @id @default(autoincrement())
+  platformId      Int
+  platform        Platform @relation(fields: [platformId], references: [id])
+  followers       Int      @default(0)
+  engagementRate  Float    @default(0)
+  totalPosts      Int      @default(0)
+  hashtagReach    Int      @default(0)
+  retweets        Int      @default(0)
+  impressions     Int      @default(0)
+  pageLikes       Int      @default(0)
+  reach           Int      @default(0)
+  communityGrowth Float    @default(0)
+  contentViews    Int      @default(0)
+  activeJobs      Int      @default(0)
+  date            DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([platformId, date])
+}
+
+model Engagement {
+  id        Int      @id @default(autoincrement())
+  platformId Int
+  platform   Platform @relation(fields: [platformId], references: [id])
+  type      String
+  count     Int      @default(0)
+  rate      Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([platformId, type])
+}
+
+model Content {
+  id        Int      @id @default(autoincrement())
+  platformId Int
+  platform   Platform @relation(fields: [platformId], references: [id])
+  type      String
+  value     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([platformId, type])
+}
+
+model Audience {
+  id         Int      @id @default(autoincrement())
+  platformId Int
+  platform   Platform @relation(fields: [platformId], references: [id])
+  category   String
+  percentage Float    @default(0)
+  change     Float    @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([platformId, category])
+}
+
+model CalendarEvent {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  date        DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+enum PlatformType {
   INSTAGRAM
   TWITTER
   FACEBOOK

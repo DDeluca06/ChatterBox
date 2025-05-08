@@ -14,19 +14,17 @@ if (!process.env.NEXTAUTH_URL) {
 declare module "next-auth" {
   interface Session {
     user: {
-      id: number;
-      email: string;
-      name?: string | null;
-      socialConnections?: Array<{
-        id: number;
-        platform: string;
-        metadata?: {
-          followers?: number;
-          engagement?: string;
-          growth?: string;
-        };
-      }>;
+      id: string
+      email: string
+      name?: string | null
+      image?: string | null
     }
+  }
+  interface User {
+    id: string
+    email: string
+    name?: string | null
+    image?: string | null
   }
 }
 
@@ -36,6 +34,11 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "select_account"
+        }
+      }
     }),
     CredentialsProvider({
       name: "credentials",
@@ -45,55 +48,43 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Invalid credentials");
+          throw new Error("Invalid credentials")
         }
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email }
-        });
+        })
 
         if (!user || !user.password) {
-          throw new Error("Invalid credentials");
+          throw new Error("Invalid credentials")
         }
 
-        const isPasswordValid = await compare(credentials.password, user.password);
+        const isPasswordValid = await compare(credentials.password, user.password)
 
         if (!isPasswordValid) {
-          throw new Error("Invalid credentials");
+          throw new Error("Invalid credentials")
         }
 
         return {
-          id: user.id,
+          id: user.id.toString(),
           email: user.email,
           name: user.name,
-        };
+        }
       }
     })
   ],
   callbacks: {
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.sub as string
+      }
+      return session
+    },
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.id = user.id
       }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session?.user) {
-        session.user.id = token.id as number;
-        
-        // Fetch user with social connections
-        const user = await prisma.user.findUnique({
-          where: { id: token.id as number },
-          include: {
-            socialConnections: true,
-          },
-        });
-
-        if (user) {
-          session.user.socialConnections = user.socialConnections;
-        }
-      }
-      return session;
+      return token
     },
     async redirect({ url, baseUrl }) {
       // Allow relative URLs
@@ -110,6 +101,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/auth/signin",
+    signOut: "/auth/signout",
     error: "/auth/error",
   },
   session: {
@@ -125,7 +117,7 @@ export async function getCurrentUser() {
   if (!session?.user) return null;
 
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: { email: session.user.email },
     include: {
       socialConnections: true,
     },

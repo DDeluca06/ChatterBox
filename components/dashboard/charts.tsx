@@ -18,11 +18,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 interface GrowthData {
-  name: string;
-  instagram: number;
-  twitter: number;
-  facebook: number;
-  linkedin: number;
+  date: string;
+  followers: number;
+  engagement: number;
 }
 
 interface PlatformStats {
@@ -44,44 +42,46 @@ const COLORS = {
 };
 
 export function GrowthChart({ data }: ChartProps) {
-  const growthData = data as GrowthData[];
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Platform Growth</CardTitle>
-        <CardDescription>Follower growth across all platforms</CardDescription>
+        <CardTitle>Growth Overview</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={growthData}
-              margin={{
-                top: 5,
-                right: 30,
-                left: 20,
-                bottom: 5,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="instagram"
-                name="Instagram"
-                stroke={COLORS.INSTAGRAM}
-                activeDot={{ r: 8 }}
-              />
-              <Line type="monotone" dataKey="twitter" name="Twitter" stroke={COLORS.TWITTER} />
-              <Line type="monotone" dataKey="facebook" name="Facebook" stroke={COLORS.FACEBOOK} />
-              <Line type="monotone" dataKey="linkedin" name="LinkedIn" stroke={COLORS.LINKEDIN} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        <ResponsiveContainer width="100%" height={350}>
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="date"
+              stroke="#888888"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              stroke="#888888"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => `${value}`}
+            />
+            <Tooltip />
+            <Line
+              type="monotone"
+              dataKey="followers"
+              stroke="#8884d8"
+              strokeWidth={2}
+              activeDot={{ r: 8 }}
+            />
+            <Line
+              type="monotone"
+              dataKey="engagement"
+              stroke="#82ca9d"
+              strokeWidth={2}
+              activeDot={{ r: 8 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
   );
@@ -109,14 +109,12 @@ export function GrowthMetricsChart({ data }: ChartProps) {
               }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
+              <XAxis dataKey="date" />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="instagram" name="Instagram" fill={COLORS.INSTAGRAM} />
-              <Bar dataKey="twitter" name="Twitter" fill={COLORS.TWITTER} />
-              <Bar dataKey="facebook" name="Facebook" fill={COLORS.FACEBOOK} />
-              <Bar dataKey="linkedin" name="LinkedIn" fill={COLORS.LINKEDIN} />
+              <Bar dataKey="followers" name="Followers" fill={COLORS.INSTAGRAM} />
+              <Bar dataKey="engagement" name="Engagement" fill={COLORS.TWITTER} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -167,14 +165,13 @@ export function EngagementChart({ data }: ChartProps) {
   );
 }
 
-export function ContentDistributionChart({ data }: ChartProps) {
-  const platformStats = data as PlatformStats[];
+export function ContentDistributionChart() {
   const contentData = [
     { name: "Images", value: 45, color: "#FF6384" },
     { name: "Videos", value: 30, color: "#36A2EB" },
     { name: "Text", value: 15, color: "#FFCE56" },
     { name: "Links", value: 10, color: "#4BC0C0" },
-  ];
+  ]
 
   return (
     <Card>
@@ -207,5 +204,5 @@ export function ContentDistributionChart({ data }: ChartProps) {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 } 

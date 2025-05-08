@@ -2,25 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { signOut } from "next-auth/react";
 
 export function SignOutButton() {
   const router = useRouter();
 
-  async function handleSignOut() {
+  const handleSignOut = async () => {
     try {
-      const response = await fetch("/api/auth/signout", {
-        method: "POST",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to sign out");
-      }
-
-      router.push("/");
-      router.refresh();
-    } catch (error) {
-      toast.error("Failed to sign out. Please try again.");
+      await signOut({ redirect: false })
+      router.push("/auth/signin")
+    } catch (err) {
+      console.error("Sign out error:", err)
     }
   }
 

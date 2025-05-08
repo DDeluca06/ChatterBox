@@ -24,13 +24,36 @@ export async function GET() {
     // Get platform stats
     const platformStats = await Promise.all(
       user.socialConnections.map(async (connection) => {
-        // Here you would typically fetch real-time stats from each platform's API
-        // For now, we'll return mock data based on the connection
+        // Fetch the platform by type
+        const platform = await prisma.platform.findFirst({
+          where: { name: connection.platform.toLowerCase() },
+        });
+        if (!platform) {
+          return {
+            platform: connection.platform.toLowerCase(),
+            followers: 0,
+            engagement: "0.0",
+            growth: 0,
+          };
+        }
+        // Fetch the stat with the maximum followers
+        const maxFollowersStat = await prisma.stats.findFirst({
+          where: { platformId: platform.id },
+          orderBy: { followers: "desc" },
+        });
+        if (!maxFollowersStat) {
+          return {
+            platform: connection.platform.toLowerCase(),
+            followers: 0,
+            engagement: "0.0",
+            growth: 0,
+          };
+        }
         return {
-          platform: connection.platform,
-          followers: Math.floor(Math.random() * 50000) + 10000,
-          engagement: (Math.random() * 5).toFixed(1),
-          growth: Math.floor(Math.random() * 200),
+          platform: connection.platform.toLowerCase(),
+          followers: maxFollowersStat.followers,
+          engagement: maxFollowersStat.engagementRate?.toFixed(1) ?? "0.0",
+          growth: maxFollowersStat.communityGrowth ?? 0,
         };
       })
     );
@@ -42,12 +65,32 @@ export async function GET() {
       return date.toLocaleString('default', { month: 'short' });
     }).reverse();
 
-    const growthData = months.map(month => ({
-      name: month,
-      instagram: Math.floor(Math.random() * 5000) + 25000,
-      twitter: Math.floor(Math.random() * 3000) + 15000,
-      facebook: Math.floor(Math.random() * 5000) + 40000,
-      linkedin: Math.floor(Math.random() * 2000) + 10000,
+    // Use actual stats for growthData if available
+    const growthData = await Promise.all(months.map(async (month, idx) => {
+      // For each platform, get the stat closest to this month
+      const monthStats = {};
+      for (const platform of ["instagram", "twitter", "facebook", "linkedin"]) {
+        const dbPlatform = await prisma.platform.findFirst({ where: { name: platform } });
+        if (dbPlatform) {
+          // Find the stat closest to the target month
+          const targetDate = new Date();
+          targetDate.setMonth(targetDate.getMonth() - (5 - idx));
+          const closest = await prisma.stats.findFirst({
+            where: { platformId: dbPlatform.id },
+            orderBy: [{ date: "asc" }],
+          });
+          monthStats[platform] = closest?.followers ?? 0;
+        } else {
+          monthStats[platform] = 0;
+        }
+      }
+      return {
+        name: month,
+        instagram: monthStats.instagram,
+        twitter: monthStats.twitter,
+        facebook: monthStats.facebook,
+        linkedin: monthStats.linkedin,
+      };
     }));
 
     // Calculate total followers

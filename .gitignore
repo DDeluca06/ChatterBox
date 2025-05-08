@@ -44,3 +44,4 @@ social-media-dashboard/
 
 #prisma
 lib/generated/
+prisma/dev.db

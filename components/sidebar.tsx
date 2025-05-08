@@ -5,10 +5,9 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { signOut } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import {
-  BarChart3,
   Settings,
   Home,
   Instagram,
@@ -21,13 +20,6 @@ import {
   LogOut,
   Menu,
   X,
-  Users,
-  MessageSquare,
-  Eye,
-  ThumbsUp,
-  Clock,
-  Hash,
-  TrendingUp,
   Layers,
   HelpCircle,
 } from "lucide-react"
@@ -35,6 +27,7 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getPlatformStats } from "@/lib/actions/platforms"
 
 interface NavItemProps {
   icon: React.ElementType
@@ -115,24 +108,36 @@ function NavGroup({ title, children, collapsible = false }: NavGroupProps) {
 }
 
 function LogoutButton() {
+  const [isLoading, setIsLoading] = useState(false)
+
   const handleLogout = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
+    setIsLoading(true)
+
     try {
       // Call our custom signout endpoint first
-      await fetch("/api/auth/signout", {
+      const response = await fetch("/api/auth/signout", {
         method: "POST",
-        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
       })
+
+      if (!response.ok) {
+        throw new Error("Failed to sign out")
+      }
 
       // Then sign out from NextAuth
       await signOut({ 
-        redirect: false
+        redirect: false,
+        callbackUrl: "/"
       })
 
       // Force a hard navigation to the home page
-      window.location.replace("/")
+      window.location.href = "/"
     } catch (error) {
       console.error("Error during logout:", error)
+      setIsLoading(false)
     }
   }
 
@@ -140,10 +145,11 @@ function LogoutButton() {
     <li>
       <button
         onClick={handleLogout}
-        className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
+        disabled={isLoading}
+        className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-slate-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <LogOut className="h-4 w-4" />
-        <span>Logout</span>
+        <span>{isLoading ? "Signing out..." : "Logout"}</span>
       </button>
     </li>
   )
@@ -153,22 +159,54 @@ export function Sidebar() {
   const pathname = usePathname()
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
-
-  // Platform stats
-  const platformStats = {
-    instagram: { followers: "32K", engagement: "3.8%" },
-    twitter: { followers: "18K", engagement: "2.1%" },
-    facebook: { followers: "45K", engagement: "1.9%" },
-    linkedin: { followers: "12K", engagement: "4.2%" },
-  }
+  const { data: session } = useSession()
+  const [platformStats, setPlatformStats] = useState({
+    instagram: { followers: "0", engagement: "0%" },
+    twitter: { followers: "0", engagement: "0%" },
+    facebook: { followers: "0", engagement: "0%" },
+    linkedin: { followers: "0", engagement: "0%" },
+  })
 
   // System stats
   const systemStats = [
-    { label: "Active", value: true, color: "bg-emerald-500" },
-    { label: "API Usage", value: "24%" },
-    { label: "Cache Hit Rate", value: "76%" },
-    { label: "API Calls", value: "29/min" },
+    { label: "Active", value: true, color: "bg-emerald-500" }
   ]
+
+  // Fetch platform stats
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const stats = await getPlatformStats()
+        if (stats) {
+          const formattedStats = {
+            instagram: {
+              followers: stats.instagram?.followers?.toLocaleString() || "0",
+              engagement: `${stats.instagram?.engagementRate?.toFixed(1) || "0"}%`,
+            },
+            twitter: {
+              followers: stats.twitter?.followers?.toLocaleString() || "0",
+              engagement: `${stats.twitter?.engagementRate?.toFixed(1) || "0"}%`,
+            },
+            facebook: {
+              followers: stats.facebook?.followers?.toLocaleString() || "0",
+              engagement: `${stats.facebook?.engagementRate?.toFixed(1) || "0"}%`,
+            },
+            linkedin: {
+              followers: stats.linkedin?.followers?.toLocaleString() || "0",
+              engagement: `${stats.linkedin?.engagementRate?.toFixed(1) || "0"}%`,
+            },
+          }
+          setPlatformStats(formattedStats)
+        }
+      } catch (error) {
+        console.error("Error fetching platform stats:", error)
+      }
+    }
+
+    if (isMounted) {
+      fetchStats()
+    }
+  }, [isMounted])
 
   // Handle window resize for mobile sidebar
   useEffect(() => {
@@ -216,12 +254,12 @@ export function Sidebar() {
       >
         {/* Logo and Brand */}
         <div className="flex h-16 items-center border-b border-slate-700 px-4">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500">
               <Layers className="h-5 w-5 text-white" />
             </div>
             <span className="text-lg font-bold text-white">SocialHub</span>
-          </div>
+          </Link>
         </div>
 
         {/* Status Section */}
@@ -229,11 +267,11 @@ export function Sidebar() {
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder-user.jpg" alt="User" />
-                <AvatarFallback>AC</AvatarFallback>
+                <AvatarImage src={session?.user?.image || "/placeholder-user.jpg"} alt={session?.user?.name || "User"} />
+                <AvatarFallback>{session?.user?.name?.charAt(0) || "U"}</AvatarFallback>
               </Avatar>
               <div>
-                <p className="text-sm font-medium text-white">Acme Inc</p>
+                <p className="text-sm font-medium text-white">{session?.user?.name || "User"}</p>
                 <p className="text-xs text-slate-400">Enterprise Plan</p>
               </div>
             </div>
@@ -259,19 +297,14 @@ export function Sidebar() {
               <NavItem
                 icon={Home}
                 label="Overview"
-                href="/"
-                isActive={pathname === "/"}
-                badge={9}
-                badgeColor="bg-blue-600"
+                href="/dashboard"
+                isActive={pathname === "/dashboard"}
               />
-              <NavItem icon={BarChart3} label="Analytics" href="/analytics" isActive={pathname === "/analytics"} />
               <NavItem
                 icon={Lightbulb}
                 label="Content Optimization"
                 href="/content-optimization"
                 isActive={pathname === "/content-optimization"}
-                badge="AI"
-                badgeColor="bg-purple-600"
               />
               <NavItem
                 icon={Calendar}
@@ -375,53 +408,6 @@ export function Sidebar() {
               </TooltipProvider>
             </NavGroup>
 
-            <NavGroup title="Insights" collapsible>
-              <NavItem
-                icon={Users}
-                label="Audience"
-                href="/insights/audience"
-                isActive={pathname === "/insights/audience"}
-              />
-              <NavItem
-                icon={MessageSquare}
-                label="Engagement"
-                href="/insights/engagement"
-                isActive={pathname === "/insights/engagement"}
-              />
-              <NavItem icon={Eye} label="Reach" href="/insights/reach" isActive={pathname === "/insights/reach"} />
-              <NavItem
-                icon={ThumbsUp}
-                label="Performance"
-                href="/insights/performance"
-                isActive={pathname === "/insights/performance"}
-              />
-            </NavGroup>
-
-            <NavGroup title="AI Tools" collapsible>
-              <NavItem
-                icon={Lightbulb}
-                label="Content Ideas"
-                href="/ai/content-ideas"
-                isActive={pathname === "/ai/content-ideas"}
-                badge="New"
-                badgeColor="bg-purple-600"
-              />
-              <NavItem icon={Clock} label="Best Times" href="/ai/best-times" isActive={pathname === "/ai/best-times"} />
-              <NavItem
-                icon={Hash}
-                label="Hashtag Optimizer"
-                href="/ai/hashtags"
-                isActive={pathname === "/ai/hashtags"}
-                badge={164}
-                badgeColor="bg-emerald-600"
-              />
-              <NavItem
-                icon={TrendingUp}
-                label="Trend Predictor"
-                href="/ai/trends"
-                isActive={pathname === "/ai/trends"}
-              />
-            </NavGroup>
           </div>
         </ScrollArea>
 

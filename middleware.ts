@@ -1,24 +1,22 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { withAuth } from "next-auth/middleware"
+import { NextResponse } from "next/server"
 
-export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
-  const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
-
-  // If trying to access auth pages while logged in, redirect to dashboard
-  if (isAuthPage && token) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+export default withAuth(
+  function middleware(req) {
+    // Add custom middleware logic here if needed
+    return NextResponse.next()
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token
+    },
+    pages: {
+      signIn: "/auth/signin",
+    },
   }
+)
 
-  // If trying to access protected pages while logged out, redirect to sign in
-  if (!isAuthPage && !token && request.nextUrl.pathname.startsWith("/dashboard")) {
-    return NextResponse.redirect(new URL("/auth/signin", request.url));
-  }
-
-  return NextResponse.next();
-}
-
+// Protect all routes under /platforms and /dashboard
 export const config = {
-  matcher: ["/dashboard/:path*", "/auth/:path*"],
-}; 
+  matcher: ["/platforms/:path*", "/dashboard/:path*"]
+} 

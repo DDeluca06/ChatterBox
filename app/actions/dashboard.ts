@@ -32,63 +32,72 @@ export async function getDashboardData(): Promise<DashboardData> {
     throw new Error("Unauthorized");
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: {
-      socialConnections: true,
-    },
-  });
+  try {
+    const platforms = await prisma.platform.findMany({
+      include: {
+        stats: {
+          orderBy: {
+            date: 'desc'
+          },
+          take: 1
+        }
+      }
+    });
 
-  if (!user) {
-    throw new Error("User not found");
+    const platformStats = platforms.map(platform => ({
+      platform: platform.name,
+      followers: platform.stats[0]?.followers || 0,
+      engagement: platform.stats[0]?.engagementRate?.toFixed(1) || "0",
+      growth: platform.stats[0]?.communityGrowth || 0,
+    }));
+
+    // Calculate total followers
+    const totalFollowers = platformStats.reduce((sum, stat) => sum + stat.followers, 0);
+
+    // Calculate average engagement
+    const avgEngagement = platformStats.reduce((sum, stat) => sum + parseFloat(stat.engagement), 0) / platformStats.length;
+
+    // Calculate growth rate
+    const growthRate = ((platformStats.reduce((sum, stat) => sum + stat.growth, 0) / totalFollowers) * 100).toFixed(1);
+
+    // Get growth data for the last 6 months
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      return date.toLocaleString('default', { month: 'short' });
+    }).reverse();
+
+    // For now, we'll use the current stats for all months
+    // In a real app, you'd want to store historical data
+    const growthData = months.map(month => ({
+      name: month,
+      instagram: platforms.find(p => p.name.toLowerCase() === 'instagram')?.stats?.followers || 0,
+      twitter: platforms.find(p => p.name.toLowerCase() === 'twitter')?.stats?.followers || 0,
+      facebook: platforms.find(p => p.name.toLowerCase() === 'facebook')?.stats?.followers || 0,
+      linkedin: platforms.find(p => p.name.toLowerCase() === 'linkedin')?.stats?.followers || 0,
+    }));
+
+    return {
+      overview: {
+        totalFollowers,
+        avgEngagement: avgEngagement.toFixed(1),
+        growthRate: `+${growthRate}%`,
+        aiInsights: 0, // This would come from your AI service
+      },
+      platformStats,
+      growthData,
+    };
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error);
+    return {
+      platformStats: [],
+      overview: {
+        totalFollowers: 0,
+        avgEngagement: "0",
+        growthRate: "+0%",
+        aiInsights: 0,
+      },
+      growthData: [],
+    };
   }
-
-  // Get platform stats
-  const platformStats = await Promise.all(
-    user.socialConnections.map(async (connection) => {
-      // Here you would typically fetch real-time stats from each platform's API
-      // For now, we'll return mock data based on the connection
-      return {
-        platform: connection.platform,
-        followers: Math.floor(Math.random() * 50000) + 10000,
-        engagement: (Math.random() * 5).toFixed(1),
-        growth: Math.floor(Math.random() * 200),
-      };
-    })
-  );
-
-  // Get growth data for the last 6 months
-  const months = Array.from({ length: 6 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - i);
-    return date.toLocaleString('default', { month: 'short' });
-  }).reverse();
-
-  const growthData = months.map(month => ({
-    name: month,
-    instagram: Math.floor(Math.random() * 5000) + 25000,
-    twitter: Math.floor(Math.random() * 3000) + 15000,
-    facebook: Math.floor(Math.random() * 5000) + 40000,
-    linkedin: Math.floor(Math.random() * 2000) + 10000,
-  }));
-
-  // Calculate total followers
-  const totalFollowers = platformStats.reduce((sum, stat) => sum + stat.followers, 0);
-
-  // Calculate average engagement
-  const avgEngagement = platformStats.reduce((sum, stat) => sum + parseFloat(stat.engagement), 0) / platformStats.length;
-
-  // Calculate growth rate
-  const growthRate = ((platformStats.reduce((sum, stat) => sum + stat.growth, 0) / totalFollowers) * 100).toFixed(1);
-
-  return {
-    overview: {
-      totalFollowers,
-      avgEngagement: avgEngagement.toFixed(1),
-      growthRate: `+${growthRate}%`,
-      aiInsights: Math.floor(Math.random() * 20) + 5,
-    },
-    platformStats,
-    growthData,
-  };
 } 

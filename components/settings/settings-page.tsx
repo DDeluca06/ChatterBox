@@ -1,289 +1,175 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useTheme } from "next-themes"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Instagram, Twitter, Facebook, Linkedin, Moon, Sun, Monitor } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
-import { useSession } from "next-auth/react"
+import { useTheme } from "next-themes"
+import { Moon, Sun, Monitor } from "lucide-react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
-interface SocialConnection {
-  platform: string
-  icon: any
-  connected: boolean
-  username: string | null
-  lastSync: string | null
-}
-
-export function SettingsPage() {
-  const { theme, setTheme } = useTheme()
+export default function SettingsPage() {
   const { toast } = useToast()
-  const { data: session } = useSession()
-  const [notifications, setNotifications] = useState(true)
-  const [emailUpdates, setEmailUpdates] = useState(false)
-  const [isLoading, setIsLoading] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
+  const { theme, setTheme } = useTheme()
+  const [isLoading, setIsLoading] = useState(false)
 
-  const [socialConnections, setSocialConnections] = useState<SocialConnection[]>([
-    {
-      platform: "INSTAGRAM",
-      icon: Instagram,
-      connected: false,
-      username: null,
-      lastSync: null,
-    },
-    {
-      platform: "TWITTER",
-      icon: Twitter,
-      connected: false,
-      username: null,
-      lastSync: null,
-    },
-    {
-      platform: "FACEBOOK",
-      icon: Facebook,
-      connected: false,
-      username: null,
-      lastSync: null,
-    },
-    {
-      platform: "LINKEDIN",
-      icon: Linkedin,
-      connected: false,
-      username: null,
-      lastSync: null,
-    },
-  ])
+  async function handlePasswordUpdate(e: React.FormEvent) {
+    e.preventDefault()
+    setIsLoading(true)
 
-  const handleConnect = async (platform: string) => {
     try {
-      setIsLoading(platform)
-      
-      // In a real implementation, this would redirect to the OAuth flow
-      // For now, we'll simulate a successful connection
-      const response = await fetch("/api/social/connect", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response = await fetch("/api/settings/password", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          platform,
-          code: "dummy_code", // In real implementation, this would come from OAuth callback
+          currentPassword: (e.target as HTMLFormElement).currentPassword.value,
+          newPassword: (e.target as HTMLFormElement).newPassword.value,
         }),
       })
 
-      if (!response.ok) throw new Error("Failed to connect")
-
-      const data = await response.json()
-      
-      setSocialConnections(prev =>
-        prev.map(conn =>
-          conn.platform === platform
-            ? {
-                ...conn,
-                connected: true,
-                username: data.username,
-                lastSync: new Date().toISOString(),
-              }
-            : conn
-        )
-      )
+      if (!response.ok) {
+        throw new Error("Failed to update password")
+      }
 
       toast({
-        title: "Connected successfully",
-        description: `Successfully connected to ${platform.toLowerCase()}`,
+        title: "Password updated",
+        description: "Your password has been updated successfully.",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
-        description: `Failed to connect to ${platform.toLowerCase()}`,
+        description: "Something went wrong. Please try again.",
         variant: "destructive",
       })
     } finally {
-      setIsLoading(null)
+      setIsLoading(false)
     }
   }
-
-  const handleDisconnect = async (platform: string) => {
-    try {
-      setIsLoading(platform)
-      
-      const response = await fetch("/api/social/disconnect", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ platform }),
-      })
-
-      if (!response.ok) throw new Error("Failed to disconnect")
-
-      setSocialConnections(prev =>
-        prev.map(conn =>
-          conn.platform === platform
-            ? {
-                ...conn,
-                connected: false,
-                username: null,
-                lastSync: null,
-              }
-            : conn
-        )
-      )
-
-      toast({
-        title: "Disconnected successfully",
-        description: `Successfully disconnected from ${platform.toLowerCase()}`,
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: `Failed to disconnect from ${platform.toLowerCase()}`,
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(null)
-    }
-  }
-
-  // Handle mounting state
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   return (
-    <div className="container max-w-5xl py-6 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">Manage your account settings and preferences.</p>
+    <div className="container space-y-6 py-8">
+      <div className="space-y-0.5">
+        <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
+        <p className="text-muted-foreground">
+          Manage your account settings and preferences.
+        </p>
       </div>
-
-      <Tabs defaultValue="general" className="space-y-4">
+      <Tabs defaultValue="appearance" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="connections">Social Connections</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="password">Password</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="general" className="space-y-4">
+        <TabsContent value="appearance">
           <Card>
             <CardHeader>
-              <CardTitle>Appearance</CardTitle>
-              <CardDescription>Customize how SocialHub looks on your device.</CardDescription>
+              <CardTitle>Theme</CardTitle>
+              <CardDescription>
+                Select your preferred theme for the application.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Theme</Label>
-                  <p className="text-sm text-muted-foreground">Select your preferred theme.</p>
+            <CardContent>
+              <RadioGroup
+                defaultValue={theme}
+                onValueChange={(value) => setTheme(value)}
+                className="grid grid-cols-3 gap-4"
+              >
+                <div>
+                  <RadioGroupItem
+                    value="light"
+                    id="light"
+                    className="peer sr-only"
+                  />
+                  <Label
+                    htmlFor="light"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                  >
+                    <Sun className="mb-3 h-6 w-6" />
+                    Light
+                  </Label>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant={mounted && theme === "light" ? "default" : "outline"}
-                    size="icon"
-                    onClick={() => setTheme("light")}
+                <div>
+                  <RadioGroupItem
+                    value="dark"
+                    id="dark"
+                    className="peer sr-only"
+                  />
+                  <Label
+                    htmlFor="dark"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
                   >
-                    <Sun className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={mounted && theme === "dark" ? "default" : "outline"}
-                    size="icon"
-                    onClick={() => setTheme("dark")}
-                  >
-                    <Moon className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={mounted && theme === "system" ? "default" : "outline"}
-                    size="icon"
-                    onClick={() => setTheme("system")}
-                  >
-                    <Monitor className="h-4 w-4" />
-                  </Button>
+                    <Moon className="mb-3 h-6 w-6" />
+                    Dark
+                  </Label>
                 </div>
-              </div>
+                <div>
+                  <RadioGroupItem
+                    value="system"
+                    id="system"
+                    className="peer sr-only"
+                  />
+                  <Label
+                    htmlFor="system"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                  >
+                    <Monitor className="mb-3 h-6 w-6" />
+                    System
+                  </Label>
+                </div>
+              </RadioGroup>
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="connections" className="space-y-4">
+        <TabsContent value="password">
           <Card>
             <CardHeader>
-              <CardTitle>Social Media Connections</CardTitle>
-              <CardDescription>Manage your connected social media accounts.</CardDescription>
+              <CardTitle>Password</CardTitle>
+              <CardDescription>
+                Change your password.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {socialConnections.map((connection) => (
-                <div key={connection.platform} className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <connection.icon className="h-5 w-5" />
-                      <div>
-                        <p className="font-medium">{connection.platform}</p>
-                        {connection.connected ? (
-                          <p className="text-sm text-muted-foreground">
-                            {connection.username} • Last synced {connection.lastSync}
-                          </p>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">Not connected</p>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      variant={connection.connected ? "outline" : "default"}
-                      onClick={() =>
-                        connection.connected
-                          ? handleDisconnect(connection.platform)
-                          : handleConnect(connection.platform)
-                      }
-                      disabled={isLoading === connection.platform}
-                    >
-                      {isLoading === connection.platform
-                        ? "Loading..."
-                        : connection.connected
-                        ? "Disconnect"
-                        : "Connect"}
-                    </Button>
-                  </div>
-                  <Separator />
+            <form onSubmit={handlePasswordUpdate}>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword">Current password</Label>
+                  <Input
+                    id="currentPassword"
+                    type="password"
+                    name="currentPassword"
+                  />
                 </div>
-              ))}
-            </CardContent>
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New password</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    name="newPassword"
+                  />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Updating..." : "Update password"}
+                </Button>
+              </CardFooter>
+            </form>
           </Card>
         </TabsContent>
-
-        <TabsContent value="notifications" className="space-y-4">
+        <TabsContent value="notifications">
           <Card>
             <CardHeader>
               <CardTitle>Notifications</CardTitle>
-              <CardDescription>Configure how you receive notifications.</CardDescription>
+              <CardDescription>
+                Configure your notification preferences.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Push Notifications</Label>
-                  <p className="text-sm text-muted-foreground">Receive notifications about your social media activity.</p>
-                </div>
-                <Switch
-                  checked={notifications}
-                  onCheckedChange={setNotifications}
-                />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Email Updates</Label>
-                  <p className="text-sm text-muted-foreground">Receive email updates about your account.</p>
-                </div>
-                <Switch
-                  checked={emailUpdates}
-                  onCheckedChange={setEmailUpdates}
-                />
-              </div>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Notification settings coming soon.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>

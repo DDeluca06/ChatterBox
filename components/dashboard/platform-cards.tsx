@@ -18,25 +18,25 @@ interface PlatformCardsProps {
 const platformCards = [
   {
     name: "Instagram",
-    icon: socialIcons.Instagram,
+    icon: socialIcons.instagram,
     color: "bg-gradient-to-r from-pink-500 to-purple-500",
     href: "/platforms/instagram",
   },
   {
     name: "Twitter",
-    icon: socialIcons.Twitter,
+    icon: socialIcons.twitter,
     color: "bg-[#1DA1F2]",
     href: "/platforms/twitter",
   },
   {
     name: "Facebook",
-    icon: socialIcons.Facebook,
+    icon: socialIcons.facebook,
     color: "bg-[#4267B2]",
     href: "/platforms/facebook",
   },
   {
     name: "LinkedIn",
-    icon: socialIcons.LinkedIn,
+    icon: socialIcons.linkedin,
     color: "bg-[#0077B5]",
     href: "/platforms/linkedin",
   },
@@ -47,12 +47,13 @@ export function PlatformCards({ platformStats }: PlatformCardsProps) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {platformCards.map((platform, index) => {
         const stats = platformStats[index] || { followers: 0, engagement: "0", growth: 0 };
+        const Icon = platform.icon;
         return (
           <Link href={platform.href} key={platform.name} className="block transition-transform hover:scale-105">
             <Card className="h-full border-none overflow-hidden">
               <div className={`${platform.color} p-4 text-white`}>
                 <div className="flex items-center justify-between">
-                  <platform.icon className="h-6 w-6" />
+                  <Icon className="h-6 w-6" />
                   <span className="text-sm font-medium">{platform.name}</span>
                 </div>
                 <div className="mt-4 text-3xl font-bold">
