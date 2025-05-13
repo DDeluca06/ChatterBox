@@ -130,12 +130,9 @@ export const authOptions: NextAuthOptions = {
       }
       return session
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id
-      }
-      if (account) {
-        token.accessToken = account.access_token
       }
       return token
     },
