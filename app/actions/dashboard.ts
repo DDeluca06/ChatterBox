@@ -27,7 +27,7 @@ export interface DashboardData {
 
 export async function getDashboardData(): Promise<DashboardData> {
   const session = await getServerSession(authOptions);
-  
+  console.log("[getDashboardData] session:", session);
   if (!session?.user?.email) {
     redirect("/auth/signin");
   }

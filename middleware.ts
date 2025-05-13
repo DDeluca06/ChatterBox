@@ -8,6 +8,8 @@ export default withAuth(
     const isApiAuth = req.nextUrl.pathname.startsWith("/api/auth")
     const isCallback = req.nextUrl.pathname.startsWith("/api/auth/callback")
 
+    console.log("[middleware] isAuth:", isAuth, "isAuthPage:", isAuthPage, "token:", req.nextauth.token);
+
     // Always allow auth-related API routes and callbacks
     if (isApiAuth || isCallback) {
       return NextResponse.next()
