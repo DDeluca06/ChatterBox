@@ -6,8 +6,9 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { compare } from "bcryptjs"
 import { getServerSession } from "next-auth"
 
-if (!process.env.NEXTAUTH_URL) {
-  throw new Error("NEXTAUTH_URL environment variable is not set")
+// Ensure NEXTAUTH_URL is set in production
+if (process.env.NODE_ENV === "production" && !process.env.NEXTAUTH_URL) {
+  throw new Error("NEXTAUTH_URL environment variable is not set in production")
 }
 
 // Extend the built-in session types
@@ -36,7 +37,9 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
-          prompt: "select_account"
+          prompt: "select_account",
+          access_type: "offline",
+          response_type: "code"
         }
       }
     }),
@@ -76,29 +79,53 @@ export const authOptions: NextAuthOptions = {
   ],
   cookies: {
     sessionToken: {
-      name: `__Secure-next-auth.session-token`,
+      name: process.env.NODE_ENV === "production" 
+        ? `__Secure-next-auth.session-token`
+        : `next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: true
+        secure: process.env.NODE_ENV === 'production'
       }
     },
     callbackUrl: {
-      name: `__Secure-next-auth.callback-url`,
+      name: process.env.NODE_ENV === "production"
+        ? `__Secure-next-auth.callback-url`
+        : `next-auth.callback-url`,
       options: {
         sameSite: 'lax',
         path: '/',
-        secure: true
+        secure: process.env.NODE_ENV === 'production'
       }
     },
     csrfToken: {
-      name: `__Host-next-auth.csrf-token`,
+      name: process.env.NODE_ENV === "production"
+        ? `__Host-next-auth.csrf-token`
+        : `next-auth.csrf-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: true
+        secure: process.env.NODE_ENV === 'production'
+      }
+    },
+    pkceCodeVerifier: {
+      name: `next-auth.pkce.code_verifier`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production'
+      }
+    },
+    state: {
+      name: `next-auth.state`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production'
       }
     }
   },
@@ -116,20 +143,23 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async redirect({ url, baseUrl }) {
-      // If the URL is the dashboard, allow it
-      if (url.startsWith(`${baseUrl}/dashboard`)) {
-        return url;
+      // Always allow callback URLs
+      if (url.startsWith("/api/auth/callback")) {
+        return url
       }
+      
       // If the URL is relative, prepend the base URL
       if (url.startsWith("/")) {
-        return `${baseUrl}${url}`;
+        return `${baseUrl}${url}`
       }
-      // If the URL is on the same origin, allow it
-      if (new URL(url).origin === baseUrl) {
-        return url;
+      
+      // If the URL is absolute and matches our base URL, allow it
+      if (url.startsWith(baseUrl)) {
+        return url
       }
-      // Default to the dashboard
-      return `${baseUrl}/dashboard`;
+      
+      // Default to dashboard for all other cases
+      return `${baseUrl}/dashboard`
     }
   },
   pages: {

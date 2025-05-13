@@ -72,8 +72,11 @@ export function SignInForm() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+      
       await signIn("google", {
-        callbackUrl: "/dashboard",
+        callbackUrl,
         redirect: true
       });
     } catch (error) {

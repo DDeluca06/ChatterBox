@@ -75,8 +75,11 @@ export function SignUpForm() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const from = searchParams.get("from") || "/dashboard";
+      
       await signIn("google", {
-        callbackUrl: "/dashboard",
+        callbackUrl: from,
         redirect: true
       });
     } catch (error) {
