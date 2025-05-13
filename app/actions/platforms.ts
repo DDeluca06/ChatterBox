@@ -73,33 +73,33 @@ export async function getPlatformData(platform: string): Promise<PlatformData> {
         }
       })
       return {
-        followers: newPlatform.stats?.followers ?? 0,
-        engagementRate: newPlatform.stats?.engagementRate ?? 0,
-        totalPosts: newPlatform.stats?.totalPosts ?? 0,
-        hashtagReach: newPlatform.stats?.hashtagReach ?? 0,
-        retweets: newPlatform.stats?.retweets ?? 0,
-        impressions: newPlatform.stats?.impressions ?? 0,
-        pageLikes: newPlatform.stats?.pageLikes ?? 0,
-        reach: newPlatform.stats?.reach ?? 0,
-        communityGrowth: newPlatform.stats?.communityGrowth ?? 0,
-        contentViews: newPlatform.stats?.contentViews ?? 0,
-        activeJobs: newPlatform.stats?.activeJobs ?? 0,
+        followers: newPlatform.stats?.[0]?.followers ?? 0,
+        engagementRate: newPlatform.stats?.[0]?.engagementRate ?? 0,
+        totalPosts: newPlatform.stats?.[0]?.totalPosts ?? 0,
+        hashtagReach: newPlatform.stats?.[0]?.hashtagReach ?? 0,
+        retweets: newPlatform.stats?.[0]?.retweets ?? 0,
+        impressions: newPlatform.stats?.[0]?.impressions ?? 0,
+        pageLikes: newPlatform.stats?.[0]?.pageLikes ?? 0,
+        reach: newPlatform.stats?.[0]?.reach ?? 0,
+        communityGrowth: newPlatform.stats?.[0]?.communityGrowth ?? 0,
+        contentViews: newPlatform.stats?.[0]?.contentViews ?? 0,
+        activeJobs: newPlatform.stats?.[0]?.activeJobs ?? 0,
       }
     }
 
     // Return platform-specific data based on the platform type
     return {
-      followers: platformData.stats?.followers ?? 0,
-      engagementRate: platformData.stats?.engagementRate ?? 0,
-      totalPosts: platformData.stats?.totalPosts ?? 0,
-      hashtagReach: platformData.stats?.hashtagReach ?? 0,
-      retweets: platformData.stats?.retweets ?? 0,
-      impressions: platformData.stats?.impressions ?? 0,
-      pageLikes: platformData.stats?.pageLikes ?? 0,
-      reach: platformData.stats?.reach ?? 0,
-      communityGrowth: platformData.stats?.communityGrowth ?? 0,
-      contentViews: platformData.stats?.contentViews ?? 0,
-      activeJobs: platformData.stats?.activeJobs ?? 0,
+      followers: platformData.stats?.[0]?.followers ?? 0,
+      engagementRate: platformData.stats?.[0]?.engagementRate ?? 0,
+      totalPosts: platformData.stats?.[0]?.totalPosts ?? 0,
+      hashtagReach: platformData.stats?.[0]?.hashtagReach ?? 0,
+      retweets: platformData.stats?.[0]?.retweets ?? 0,
+      impressions: platformData.stats?.[0]?.impressions ?? 0,
+      pageLikes: platformData.stats?.[0]?.pageLikes ?? 0,
+      reach: platformData.stats?.[0]?.reach ?? 0,
+      communityGrowth: platformData.stats?.[0]?.communityGrowth ?? 0,
+      contentViews: platformData.stats?.[0]?.contentViews ?? 0,
+      activeJobs: platformData.stats?.[0]?.activeJobs ?? 0,
     }
   } catch (error) {
     console.error(`Error fetching ${platform} data:`, error)

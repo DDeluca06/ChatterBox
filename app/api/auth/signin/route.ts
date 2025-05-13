@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       return new NextResponse("Invalid credentials", { status: 401 });
     }
 
-    const isPasswordValid = await compare(password, user.password);
+    const isPasswordValid = await compare(password, user.password ?? "");
 
     if (!isPasswordValid) {
       return new NextResponse("Invalid credentials", { status: 401 });

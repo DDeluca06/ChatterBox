@@ -55,7 +55,7 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email }
         })
 
-        if (!user || !user.password) {
+        if (!user || !user.password || !user.email) {
           throw new Error("Invalid credentials")
         }
 
@@ -66,9 +66,10 @@ export const authOptions: NextAuthOptions = {
         }
 
         return {
-          id: user.id.toString(),
+          id: user.id,
           email: user.email,
           name: user.name,
+          image: user.image
         }
       }
     })

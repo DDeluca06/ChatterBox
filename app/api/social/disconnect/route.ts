@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { PlatformType } from "@prisma/client"
 
 export async function POST(req: Request) {
   try {
@@ -11,16 +12,17 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { platformUserId } = body
+    const { platform, username } = body
 
-    if (!platformUserId) {
-      return new NextResponse("Missing platformUserId", { status: 400 })
+    if (!platform || !username) {
+      return new NextResponse("Missing platform or username", { status: 400 })
     }
 
     // Delete the social connection
     await prisma.socialConnection.deleteMany({
       where: {
-        platformUserId,
+        platform: platform as PlatformType,
+        username,
         userId: session.user.id,
       },
     })

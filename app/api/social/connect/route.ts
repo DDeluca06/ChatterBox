@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { PlatformType } from "@prisma/client"
 
 export async function POST(req: Request) {
   try {
@@ -20,7 +21,8 @@ export async function POST(req: Request) {
     // Check if account already exists
     const existingAccount = await prisma.socialConnection.findFirst({
       where: {
-        platformUserId,
+        userId: session.user.id,
+        platform: platform as PlatformType,
       },
     })
 
@@ -46,12 +48,11 @@ export async function POST(req: Request) {
     await prisma.socialConnection.create({
       data: {
         userId: session.user.id,
-        platform,
-        platformUserId,
+        platform: platform as PlatformType,
+        username,
         accessToken,
         refreshToken,
         tokenExpiresAt: expiresAt,
-        username,
         isConnected: true,
       },
     })
