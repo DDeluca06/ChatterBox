@@ -116,16 +116,20 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async redirect({ url, baseUrl }) {
-      // Allow relative URLs
+      // If the URL is the dashboard, allow it
+      if (url.startsWith(`${baseUrl}/dashboard`)) {
+        return url;
+      }
+      // If the URL is relative, prepend the base URL
       if (url.startsWith("/")) {
         return `${baseUrl}${url}`;
       }
-      // Allow absolute URLs that are on the same origin
-      else if (new URL(url).origin === baseUrl) {
+      // If the URL is on the same origin, allow it
+      if (new URL(url).origin === baseUrl) {
         return url;
       }
-      // Default to the base URL
-      return baseUrl;
+      // Default to the dashboard
+      return `${baseUrl}/dashboard`;
     }
   },
   pages: {

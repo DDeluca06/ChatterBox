@@ -72,11 +72,13 @@ export function SignInForm() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/dashboard" });
+      await signIn("google", {
+        callbackUrl: "/dashboard",
+        redirect: true
+      });
     } catch (error) {
       console.error("Google sign in error:", error);
       toast.error("Failed to sign in with Google");
-    } finally {
       setIsLoading(false);
     }
   };
