@@ -1,8 +1,7 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function POST() {
-  const cookieStore = cookies();
+  const response = NextResponse.json({ success: true });
   
   // Delete all auth-related cookies
   const cookieNames = [
@@ -12,10 +11,10 @@ export async function POST() {
     "next-auth.csrf-token"
   ];
 
-  // Delete cookies in parallel
-  await Promise.all(
-    cookieNames.map(cookieName => cookieStore.delete(cookieName))
-  );
+  // Delete cookies
+  cookieNames.forEach(cookieName => {
+    response.cookies.delete(cookieName);
+  });
 
-  return NextResponse.json({ success: true });
+  return response;
 } 

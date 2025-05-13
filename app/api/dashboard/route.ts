@@ -68,7 +68,7 @@ export async function GET() {
     // Use actual stats for growthData if available
     const growthData = await Promise.all(months.map(async (month, idx) => {
       // For each platform, get the stat closest to this month
-      const monthStats = {};
+      const monthStats: Record<string, number> = {};
       for (const platform of ["instagram", "twitter", "facebook", "linkedin"]) {
         const dbPlatform = await prisma.platform.findFirst({ where: { name: platform } });
         if (dbPlatform) {
