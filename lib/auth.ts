@@ -79,38 +79,29 @@ export const authOptions: NextAuthOptions = {
   ],
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === "production" 
-        ? `__Secure-next-auth.session-token`
-        : `next-auth.session-token`,
+      name: `next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+        secure: process.env.NODE_ENV === 'production'
       }
     },
     callbackUrl: {
-      name: process.env.NODE_ENV === "production"
-        ? `__Secure-next-auth.callback-url`
-        : `next-auth.callback-url`,
+      name: `next-auth.callback-url`,
       options: {
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+        secure: process.env.NODE_ENV === 'production'
       }
     },
     csrfToken: {
-      name: process.env.NODE_ENV === "production"
-        ? `__Host-next-auth.csrf-token`
-        : `next-auth.csrf-token`,
+      name: `next-auth.csrf-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+        secure: process.env.NODE_ENV === 'production'
       }
     },
     pkceCodeVerifier: {
@@ -119,8 +110,7 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+        secure: process.env.NODE_ENV === 'production'
       }
     },
     state: {
@@ -129,8 +119,7 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+        secure: process.env.NODE_ENV === 'production'
       }
     }
   },
@@ -148,22 +137,22 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async redirect({ url, baseUrl }) {
-      // Always allow callback URLs
-      if (url.startsWith("/api/auth/callback")) {
+      // Handle OAuth callback URLs
+      if (url.includes('/api/auth/callback')) {
         return url
       }
       
-      // If the URL is relative, prepend the base URL
-      if (url.startsWith("/")) {
+      // Handle relative URLs
+      if (url.startsWith('/')) {
         return `${baseUrl}${url}`
       }
       
-      // If the URL is absolute and matches our base URL, allow it
+      // Handle absolute URLs that match our base URL
       if (url.startsWith(baseUrl)) {
         return url
       }
       
-      // Default to dashboard for all other cases
+      // Default to dashboard
       return `${baseUrl}/dashboard`
     }
   },
