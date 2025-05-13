@@ -85,11 +85,9 @@ export async function GET() {
         }
       }
       return {
-        name: month,
-        instagram: monthStats.instagram,
-        twitter: monthStats.twitter,
-        facebook: monthStats.facebook,
-        linkedin: monthStats.linkedin,
+        date: month,
+        followers: Object.values(monthStats).reduce((sum, val) => sum + val, 0),
+        engagement: parseFloat((Object.values(monthStats).reduce((sum, val) => sum + val, 0) / 4).toFixed(1))
       };
     }));
 

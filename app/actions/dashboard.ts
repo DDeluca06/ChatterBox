@@ -18,11 +18,9 @@ export interface DashboardData {
     growth: number;
   }[];
   growthData: {
-    name: string;
-    instagram: number;
-    twitter: number;
-    facebook: number;
-    linkedin: number;
+    date: string;
+    followers: number;
+    engagement: number;
   }[];
 }
 
@@ -69,13 +67,15 @@ export async function getDashboardData(): Promise<DashboardData> {
 
     // For now, we'll use the current stats for all months
     // In a real app, you'd want to store historical data
-    const growthData = months.map(month => ({
-      name: month,
-      instagram: platforms.find(p => p.name.toLowerCase() === 'instagram')?.stats?.followers || 0,
-      twitter: platforms.find(p => p.name.toLowerCase() === 'twitter')?.stats?.followers || 0,
-      facebook: platforms.find(p => p.name.toLowerCase() === 'facebook')?.stats?.followers || 0,
-      linkedin: platforms.find(p => p.name.toLowerCase() === 'linkedin')?.stats?.followers || 0,
-    }));
+    const growthData = months.map(month => {
+      const totalFollowers = platforms.reduce((sum, platform) => sum + (platform.stats[0]?.followers || 0), 0);
+      const totalEngagement = platforms.reduce((sum, platform) => sum + (platform.stats[0]?.engagementRate || 0), 0);
+      return {
+        date: month,
+        followers: totalFollowers,
+        engagement: parseFloat((totalEngagement / platforms.length).toFixed(1))
+      };
+    });
 
     return {
       overview: {

@@ -21,7 +21,7 @@ function getMonthMatrix(date: Date) {
   const endMonth = endOfMonth(date);
   const startDate = startOfWeek(startMonth, { weekStartsOn: 0 });
   const endDate = endOfWeek(endMonth, { weekStartsOn: 0 });
-  const matrix = [];
+  const matrix: Date[][] = [];
   let curr = startDate;
   while (curr <= endDate) {
     const week: Date[] = [];

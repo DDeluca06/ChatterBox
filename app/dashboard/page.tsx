@@ -133,7 +133,7 @@ export default async function Dashboard() {
 
           <TabsContent value="content" className="space-y-4">
             <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-              <ContentDistributionChart data={data.platformStats} />
+              <ContentDistributionChart />
             </Suspense>
           </TabsContent>
         </Tabs>
