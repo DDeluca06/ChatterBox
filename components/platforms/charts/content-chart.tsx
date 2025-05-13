@@ -13,7 +13,7 @@ interface ContentChartProps {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-export function ContentChart({ data, platform }: ContentChartProps) {
+export function ContentChart({ data }: ContentChartProps) {
   return (
     <Card>
       <CardHeader>

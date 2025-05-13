@@ -12,7 +12,7 @@ interface EngagementChartProps {
   platform: string;
 }
 
-export function EngagementChart({ data, platform }: EngagementChartProps) {
+export function EngagementChart({ data }: EngagementChartProps) {
   return (
     <Card>
       <CardHeader>

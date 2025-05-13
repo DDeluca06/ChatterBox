@@ -12,7 +12,7 @@ interface AudienceChartProps {
   platform: string;
 }
 
-export function AudienceChart({ data, platform }: AudienceChartProps) {
+export function AudienceChart({ data }: AudienceChartProps) {
   return (
     <Card>
       <CardHeader>
